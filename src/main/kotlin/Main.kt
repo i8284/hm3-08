@@ -1,5 +1,63 @@
 package ru.netology
 
+interface Attachments {
+    val type: String
+}
+
+data class Photo(
+    val id: Int,
+    val ownerId: Int,
+    val albumId: Int
+)
+
+class PhotoAttachment(val photo: Photo) : Attachments {
+    override val type = "photo"
+}
+
+data class Audio(
+    val id: Int,
+    val ownerId: Int,
+    val artist: String,
+    val title: String
+)
+
+class AudioAttachment(val audio: Audio) : Attachments {
+    override val type = "audio"
+}
+
+data class Video(
+    val id: Int,
+    val ownerId: Int,
+    val description: String,
+    val duration: Int
+)
+
+class VideoAttachment(val video: Video) : Attachments {
+    override val type = "video"
+}
+
+data class File(
+    val id: Int,
+    val ownerId: Int,
+    val size: Int,
+    val ext: String
+)
+
+class FileAttachment(val file: File) : Attachments {
+    override val type = "file"
+}
+
+data class Link(
+    val url: String,
+    val title: String,
+    val caption: String,
+    val description: String
+)
+
+class LinkAttachment(val link: Link) : Attachments {
+    override val type = "link"
+}
+
 data class Comments(
     val count: Int = 0,
     val canPost: Boolean = true,
@@ -26,7 +84,7 @@ data class Post(
     val markedAsAds: Boolean = false,
     val canDelete: Boolean = true,
     val postType: String = "post",
-
+    val attachments: List<Attachments> = emptyList(),
 
     val comments: Comments = Comments(),
     val likes: Likes = Likes()
@@ -45,7 +103,8 @@ object WallService {
     fun add(post: Post): Post {
         //nextId = nextId + 1
         val newPost = post.copy(
-            id = nextId++
+            id = nextId++,
+            attachments = post.attachments.toList()
         )
         posts += newPost
         return posts.last()
@@ -67,6 +126,10 @@ object WallService {
 }
 
 fun main() {
+    val photo = Photo(1, 1, 3)
+    val video = Video(1, 1, "видео", 30)
+    val attachments = listOf<Attachments>(PhotoAttachment(photo), VideoAttachment(video))
+
     val post = Post(
         0,
         1,
@@ -83,6 +146,7 @@ fun main() {
         2,
         345,
         "Вторая запись",
+        attachments = attachments,
         comments = Comments(1, canClose = false),
         likes = Likes(154)
     )
