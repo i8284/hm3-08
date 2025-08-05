@@ -37,13 +37,6 @@ class MainTest {
         assertFalse(result)
     }
 
-
-    @Before
-    fun clearBeforeTest2() {
-        WallService.clear()
-    }
-
-
     @Test
     fun addPost() {
         val post = WallService.add(Post(
