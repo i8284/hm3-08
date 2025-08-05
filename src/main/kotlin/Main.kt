@@ -18,9 +18,9 @@ data class Likes(
 data class Post(
     val id: Int,
     val ownerId: Int,
-    val fromId: Int,
+    val fromId: Int?,
     val date: Int,
-    val text: String,
+    val text: String?,
     val friendsOnly: Boolean = false,
     val isFavorite: Boolean = false,
     val markedAsAds: Boolean = false,
@@ -72,7 +72,7 @@ fun main() {
         1,
         1,
         123,
-        "Первая запись",
+        null,
         comments = Comments(10),
         likes = Likes(15)
     )
