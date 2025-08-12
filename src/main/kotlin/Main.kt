@@ -66,6 +66,12 @@ data class Comments(
     val canOpen: Boolean = true
 )
 
+data class Comment(
+    val id: Int,
+    val fromId: Int,
+    val text: String
+)
+
 data class Likes(
     val count: Int = 0,
     val userLikes: Boolean = false,
@@ -91,13 +97,32 @@ data class Post(
 
 )
 
+class PostNotFoundException(message: String) : RuntimeException(message)
+
 object WallService {
     private var posts = emptyArray<Post>()
     private var nextId: Int = 1
+    private var comments = emptyArray<Comment>()
+    private var nextCommentId = 1
+
+    fun createComment(postId: Int, comment: Comment): Comment {
+        val postExist = posts.any{it.id == postId}
+
+        if(!postExist) {
+            throw PostNotFoundException("Пост с id = $postId не найден")
+        }
+
+        val newComment = comment.copy(id = nextCommentId++)
+        comments += newComment
+        return newComment
+    }
 
     fun clear() {
         posts = emptyArray()
         nextId = 1
+        comments = emptyArray()
+        nextCommentId = 1
+
     }
 
     fun add(post: Post): Post {
@@ -122,6 +147,8 @@ object WallService {
     }
 
     fun getAll() = posts.toList()
+
+
 
 }
 
@@ -153,6 +180,15 @@ fun main() {
 
     val addedPost1 = WallService.add(post)
     val addedPost2 = WallService.add(post2)
+
+
+    try {
+        val comment1 = Comment(1, 1, text = "Комментарий к записи")
+        val addedComment = WallService.createComment(100, comment1)
+        println("Комментарий добавлен: $addedComment")
+    } catch (e: PostNotFoundException) {
+        println("Ошибка: ${e.message}")
+    }
 
     println("Первая запись: $addedPost1")
     println("Вторая запись: $addedPost2")

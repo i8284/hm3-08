@@ -5,6 +5,27 @@ import org.junit.Test
 
 class MainTest {
 
+    @Before
+    fun clearBeforeTest() {
+        WallService.clear()
+    }
+
+    @Test
+    fun createComment() {
+        val post = WallService.add(Post(1, 1, 1, 123, "Текст поста"))
+        val comment = Comment(1, fromId = 1, text = "Комментарий")
+
+        val result = WallService.createComment(post.id, comment)
+
+        assertEquals("Комментарий", result.text)
+    }
+
+    @Test(expected = PostNotFoundException::class)
+    fun shouldThrow() {
+        val comment = Comment(1, fromId = 2, text = "Комментарий")
+        WallService.createComment(100, comment)
+    }
+
     @Test
     fun updateExisting() {
 
@@ -25,10 +46,7 @@ class MainTest {
         assertTrue(result)
     }
 
-    @Before
-    fun clearBeforeTest() {
-        WallService.clear()
-    }
+
 
     @Test
     fun updateNonExistingPost () {
