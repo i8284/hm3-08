@@ -5,6 +5,57 @@ import org.junit.Test
 
 class MainTest {
 
+    @Before
+    fun clearBeforeTest() {
+        WallService.clear()
+        NoteService.clear()
+    }
+
+    @Test
+    fun addNote_success() {
+        val note = NoteService.add("Заголовок", "Текст заметки")
+        assertEquals(1, note.id)
+        assertEquals("Заголовок", note.title)
+    }
+
+    @Test
+    fun createComment_success() {
+        val note = NoteService.add("Заметка 1", "Текст")
+        val comment = NoteService.createComment(note.id, fromId = 101, message = "Комментарий тест")
+        assertEquals(1, comment.id)
+        assertEquals(note.id, comment.noteId)
+        assertEquals("Комментарий тест", comment.message)
+
+    }
+
+    @Test(expected = NoteNotFoundException::class)
+    fun createComment_toNonExistingNote_shouldThrow() {
+        NoteService.createComment(999, fromId = 100, message = "Комментарий")
+    }
+
+
+    @Test(expected = CommentNotFoundException::class)
+    fun deleteComment_nonExisting_shouldThrow() {
+        NoteService.deleteComment(999)
+    }
+
+
+    @Test
+    fun createComment() {
+        val post = WallService.add(Post(1, 1, 1, 123, "Текст поста"))
+        val comment = Comment(1, fromId = 1, text = "Комментарий")
+
+        val result = WallService.createComment(post.id, comment)
+
+        assertEquals("Комментарий", result.text)
+    }
+
+    @Test(expected = PostNotFoundException::class)
+    fun shouldThrow() {
+        val comment = Comment(1, fromId = 2, text = "Комментарий")
+        WallService.createComment(100, comment)
+    }
+
     @Test
     fun updateExisting() {
 
@@ -25,10 +76,7 @@ class MainTest {
         assertTrue(result)
     }
 
-    @Before
-    fun clearBeforeTest() {
-        WallService.clear()
-    }
+
 
     @Test
     fun updateNonExistingPost () {
