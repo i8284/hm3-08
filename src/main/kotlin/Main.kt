@@ -97,7 +97,116 @@ data class Post(
 
 )
 
+data class Note (
+    val id: Int,
+    var title: String,
+    var text: String,
+    val comments: MutableList<NoteComment> = mutableListOf(),
+    var deleted: Boolean = false
+)
+
+data class NoteComment(
+    val id: Int,
+    val noteId: Int,
+    val fromId: Int,
+    var message: String,
+    var deleted: Boolean = false
+
+)
+
 class PostNotFoundException(message: String) : RuntimeException(message)
+class NoteNotFoundException(message: String) : RuntimeException(message)
+class CommentNotFoundException(message: String) : RuntimeException(message)
+class CommentAlreadyDeletedException(message: String) : RuntimeException(message)
+
+object NoteService {
+    private var notes = mutableListOf<Note>()
+    private var nextNoteId = 1
+    private var nextCommentId = 1
+
+    fun add(title: String, text: String): Note {
+        val note = Note(
+            id = nextNoteId++,
+            title = title,
+            text = text
+        )
+        notes.add(note)
+        return note
+    }
+
+    fun createComment(noteId: Int, fromId: Int, message: String): NoteComment {
+        val note = notes.find { it.id == noteId && !it.deleted }
+            ?: throw NoteNotFoundException("Заметка $noteId не найдена или удалена")
+
+        val comment = NoteComment(
+            id = nextCommentId++,
+            noteId = noteId,
+            fromId = fromId,
+            message = message
+        )
+        note.comments.add(comment)
+        return comment
+
+    }
+
+    fun delete(noteId: Int): Boolean {
+        val note = notes.find { it.id == noteId && !it.deleted }
+            ?: throw NoteNotFoundException("Заметка $noteId не найдена или удалена")
+        note.deleted = true
+        return true
+    }
+
+    fun deleteComment(commentId: Int): Boolean {
+        val comment = notes.flatMap { it.comments }
+            .find { it.id == commentId }
+            ?: throw CommentNotFoundException("Комментарий $commentId не найден")
+        if (comment.deleted) throw CommentAlreadyDeletedException("Комментарий уже удален")
+        comment.deleted = true
+        return true
+    }
+
+    fun edit(noteId: Int, newTitle: String, newText: String): Boolean {
+        val note = notes.find { it.id == noteId && !it.deleted }
+            ?: throw NoteNotFoundException("Заметка $noteId не найдена или удалена")
+        note.title = newTitle
+        note.text = newText
+        return true
+
+    }
+
+    fun editComment(commentId: Int, newMessage: String): Boolean {
+        val comment = notes.flatMap { it.comments }
+            .find { it.id == commentId }
+            ?: throw CommentNotFoundException("Комментарий $commentId не найден")
+        comment.message = newMessage
+        return true
+    }
+
+    fun get(): List<Note> = notes.filter { !it.deleted }
+
+    fun getComments(noteId: Int): List<NoteComment> {
+        val note = notes.find { it.id == noteId && !it.deleted }
+            ?: throw NoteNotFoundException("Заметка $noteId не найдена")
+        return note.comments.filter { !it.deleted }
+    }
+
+    fun restoreComment(commentId: Int): Boolean {
+        val comment = notes.flatMap { it.comments }
+            .find { it.id == commentId }
+            ?: throw CommentNotFoundException("Комментарий $commentId не найден")
+
+        if (!comment.deleted) return false
+        comment.deleted = false
+        return true
+    }
+
+    fun clear() {
+        notes.clear()
+        nextNoteId = 1
+        nextCommentId = 1
+    }
+
+}
 
 object WallService {
     private var posts = emptyArray<Post>()
