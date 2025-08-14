@@ -8,6 +8,7 @@ class MainTest {
     @Before
     fun clearBeforeTest() {
         WallService.clear()
+        NoteService.clear()
     }
 
     @Test
